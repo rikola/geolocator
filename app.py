@@ -1,9 +1,11 @@
 import sqlite3
 from flask import Flask, render_template, g, url_for, request
 from werkzeug.exceptions import abort
+from globemaster import coordinate_importer
 
 # Sqlite dev database file.
 DATABASE = 'database/database.db'
+COORDINATE_FILE = 'database/test_coordinates.csv'
 
 # Start the Flask web server
 app = Flask(__name__)
@@ -60,14 +62,17 @@ def get_post(post_id):
 
 @app.route('/')
 def index():
-    posts = query_db('SELECT * FROM posts')
-    return render_template('index.html', posts=posts)
+    locations = coordinate_importer.read_contents(COORDINATE_FILE)
+    # posts = query_db('SELECT * FROM posts')
+    return render_template('index.html', locations=locations)
 
 
-@app.route('/<int:post_id>')
-def post(post_id):
-    post = get_post(post_id)
-    return render_template('post.html', post=post)
+@app.route('/<int:location_id>')
+def location(location_id):
+    locations = coordinate_importer.read_contents(COORDINATE_FILE)
+    location = locations[location_id-1]
+    # post = get_post(post_id)
+    return render_template('location.html', location=location)
 
 
 @app.route('/api/getLocations', methods=['GET'])
