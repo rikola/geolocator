@@ -31,7 +31,7 @@ def query_db(query, args=(), one=False):
 
 def insert_db(command, args=()):
     db = get_db()
-    cur = db.execute(command, args)
+    db.execute(command, args)
     db.commit()
 
 
@@ -93,8 +93,8 @@ def get_locations():
     }
 
 
-with app.test_request_context():
-    print(url_for('index'))
-    print(url_for('post', post_id=5))
-    print(url_for('get_locations'))
+# with app.test_request_context():
+#     print(url_for('index'))
+#     print(url_for('post', post_id=5))
+#     print(url_for('get_locations'))
 
