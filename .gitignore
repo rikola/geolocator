@@ -26,4 +26,4 @@ htmlcov/
 *,cover
 
 # SQLite development DB.
-database.db
+**/database.db
