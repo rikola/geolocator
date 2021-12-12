@@ -1,11 +1,10 @@
 import sqlite3
-from flask import Flask, render_template, g, url_for, request
-from werkzeug.exceptions import abort
-from globemaster import coordinate_importer
+from flask import Flask, render_template, g, url_for, request, redirect, abort
+
+from globemaster.location import Location
 
 # Sqlite dev database file.
 DATABASE = 'database/database.db'
-COORDINATE_FILE = 'database/test_coordinates.csv'
 
 # Start the Flask web server
 app = Flask(__name__)
@@ -33,8 +32,26 @@ def query_db(query, args=(), one=False):
 
 def insert_db(command, args=()):
     db = get_db()
-    db.execute(command, args)
+    output = db.execute(command, args)
+    id = output.lastrowid
     db.commit()
+    return id
+
+
+def get_location_from_db(location_id: int):
+    item = query_db("SELECT * FROM locations WHERE id = ?", (location_id,), one=True)
+    loc = Location(item['id'], item['name'], item['latitude'], item['longitude'])
+    return loc
+
+
+def get_all_locations_from_db(limit=10):
+    return query_db("SELECT * FROM locations LIMIT ?", (limit,))
+
+
+def insert_location_db(name: str, latitude: float, longitude: float):
+    return insert_db("INSERT INTO locations (name, latitude, longitude) VALUES (?, ?, ?)",
+                     (name, latitude, longitude)
+                     )
 
 
 @app.teardown_appcontext
@@ -53,53 +70,48 @@ def init_db():
         db.commit()
 
 
-def get_post(post_id):
-    post = query_db('SELECT * FROM posts WHERE id = ?', (post_id,))
-    if post is None:
-        abort(404)
-    return post
-
-
 @app.route('/')
 def index():
-    locations = coordinate_importer.read_contents(COORDINATE_FILE)
-    # posts = query_db('SELECT * FROM posts')
+    locations = get_all_locations_from_db()
     return render_template('index.html', locations=locations)
 
 
-@app.route('/<int:location_id>')
+@app.route('/location/<int:location_id>')
 def location(location_id):
-    locations = coordinate_importer.read_contents(COORDINATE_FILE)
-    location = locations[location_id-1]
-    # post = get_post(post_id)
-    return render_template('location.html', location=location)
+    item = get_location_from_db(location_id)
+    return render_template('location.html', location=item)
 
 
-@app.route('/api/getLocations', methods=['GET'])
+@app.route('/api/locations', methods=['GET'])
 def get_locations():
     """This method currently takes 3 URL parameters and just returns them in a JSON response"""
-    x = request.args.get('x', 0)
-    y = request.args.get('y', 0)
-    distance = request.args.get('distance', 100)
+    lat = request.args.get('lat', 0)
+    long = request.args.get('long', 0)
+    radius = request.args.get('radius', 100)
+    locations = get_all_locations_from_db()
 
     return {
         "userProps": {
-            "lat": x,
-            "long": y,
-            "distance": distance
+            "lat": lat,
+            "long": long,
+            "radius": radius
         },
-        "locations": [
-            {
-                "lat": x,
-                "long": y,
-                "distance": distance
-            }
-        ]
+        "locations": locations
     }
 
+
+@app.route('/api/locations', methods=['POST'])
+def create_location():
+    if not request.is_json:
+        return abort(404)
+    r = request.json
+
+    name, latitude, longitude = r['name'], r['latitude'], r['longitude']
+    new_id = insert_location_db(name, latitude, longitude)
+
+    return redirect(url_for('location', location_id=new_id))
 
 # with app.test_request_context():
 #     print(url_for('index'))
 #     print(url_for('post', post_id=5))
 #     print(url_for('get_locations'))
-
