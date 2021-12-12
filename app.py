@@ -100,8 +100,23 @@ def get_locations():
     }
 
 
-@app.route('/api/locations', methods=['POST'])
+@app.route('/locations/new', methods=['GET', 'POST'])
 def create_location():
+    if request.method == 'GET':
+        return render_template('create.html')
+
+    # Read the form data into the db
+    # TODO: Add description integration
+    f = request.form
+    print(f)
+    name, latitude, longitude = f.get('name'), float(f.get('latitude')), float(f.get('longitude'))
+    result = insert_location_db(name, latitude, longitude)
+
+    return redirect(url_for('location', location_id=result))
+
+
+@app.route('/api/locations', methods=['POST'])
+def create_location_json():
     if not request.is_json:
         return abort(404)
     r = request.json
