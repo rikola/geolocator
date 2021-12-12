@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
-   <h1>{% block title %} Welcome to Eric's Geo Location Service {% endblock %}</h1>
-   {% for post in posts %}
-      <a href="{{ url_for('post', post_id=post['id']) }}">
-         <h2>{{ post['title'] }}</h2>
+   <h1>{% block title %}Here is a list of Locations{% endblock %}</h1>
+   {% for location in locations %}
+      <a href="{{ url_for('location', location_id=location['id']) }}">
+         <h2>{{ location['name'] }}</h2>
       </a>
-      <span class="badge badge-primary">{{ post['created'] }}</span>
+      <span class="badge badge-info">Lat: {{ location['latitude'] }}</span>
+      <span class="badge badge-info">Long: {{ location['longitude'] }}</span>
       <hr>
    {% endfor %}
 {% endblock %}
