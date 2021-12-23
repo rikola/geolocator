@@ -27,3 +27,5 @@ htmlcov/
 
 # SQLite development DB.
 **/database.db
+instance/
+**/__pycache__/

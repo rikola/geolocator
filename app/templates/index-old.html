@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+   <h1>{% block title %}Here is a list of Locations{% endblock %}</h1>
+   <a href="{{ url_for('create_location') }}" class="btn btn-outline-primary">Create Location</a>
+   <hr>
+   {% for location in locations %}
+      <a href="{{ url_for('location', location_id=location['id']) }}">
+         <h2>{{ location['name'] }}</h2>
+      </a>
+      <span class="badge badge-info">Lat: {{ location['latitude'] }}</span>
+      <span class="badge badge-info">Long: {{ location['longitude'] }}</span>
+      <hr>
+   {% endfor %}
+{% endblock %}
+

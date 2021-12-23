@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Locations{% endblock %}</h1>
+  {% if g.user %}
+    <a class="action" href="{{ url_for('locations.create') }}">New</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% for location in locations %}
+    <article class="location">
+      <header>
+        <div>
+          <h1>{{ location['name'] }}</h1>
+          <div class="about">by {{ location['username'] }} on {{ location['created'].strftime('%Y-%m-%d') }}</div>
+        </div>
+        {% if g.user['id'] == location['author_id'] %}
+          <a class="action" href="{{ url_for('locations.update', id=location['id']) }}">Edit</a>
+        {% endif %}
+      </header>
+      <p class="body">{{ location['description'] }}</p>
+    </article>
+    {% if not loop.last %}
+      <hr>
+    {% endif %}
+  {% endfor %}
+{% endblock %}
